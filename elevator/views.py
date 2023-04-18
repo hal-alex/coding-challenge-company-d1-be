@@ -5,6 +5,8 @@ from rest_framework import status
 from elevator.models import Elevator
 from .serializers import ElevatorSerializer
 
+from django.db.models import Q
+
 
 class ElevatorView(APIView):
     serializer_class = ElevatorSerializer
@@ -16,7 +18,7 @@ class ElevatorView(APIView):
         return Response(serialized_request.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        """This allows us to create a new elevator"""
+        """This allows the user to create a new elevator"""
 
         new_elevator = ElevatorSerializer(data=request.data)
 
@@ -30,3 +32,16 @@ class ElevatorView(APIView):
                 e.__dict__ if e.__dict__ else str(e),
                 status=status.HTTP_422_UNPROCESSABLE_ENTITY,
             )
+
+    def patch(self, request):
+        """This returns the filtered elevators based on floor
+        that the user has requested to go to
+        """
+
+        requested_floor = request.data["requested_floor"]
+        filtered_elevators = Elevator.objects.filter(
+            Q(starting_floor__lte=requested_floor)
+            & Q(ending_floor__gte=requested_floor)
+        )
+        serialized_request = ElevatorSerializer(filtered_elevators, many=True)
+        return Response(serialized_request.data, status=status.HTTP_202_ACCEPTED)
