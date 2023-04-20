@@ -16,4 +16,4 @@ To install the project dependencies
 
 ## `python manage.py runserver`
 
-To launch the 
+To launch the local server
